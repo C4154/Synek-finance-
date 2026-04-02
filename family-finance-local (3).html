@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Rodinné Finance</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0f1e;color:#e2e8f0;font-family:'Inter',sans-serif;min-height:100vh}
+.app{max-width:430px;margin:0 auto;position:relative;padding-bottom:80px}
+.header{background:rgba(15,22,36,0.95);backdrop-filter:blur(10px);padding:16px 20px 12px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;border-bottom:1px solid #1e2d42}
+.header h1{font-size:18px;font-weight:800;letter-spacing:-0.3px}
+.user-btns{display:flex;gap:8px}
+.user-btn{padding:5px 12px;border-radius:20px;border:none;cursor:pointer;font-size:13px;font-weight:700;color:#fff;transition:all 0.2s}
+.content{padding:16px}
+.card{background:#111827;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid #1e2d42}
+.balance-card{background:linear-gradient(135deg,#0f1f3d 0%,#0a0f1e 100%);border:1px solid #1e3a5f;border-radius:20px;padding:22px;margin-bottom:12px;position:relative;overflow:hidden}
+.balance-card::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 70%)}
+.balance-label{font-size:12px;color:#64748b;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.balance-amount{font-size:38px;font-weight:900;letter-spacing:-1px}
+.balance-row{display:flex;gap:24px;margin-top:14px}
+.balance-sub label{font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.4px}
+.balance-sub span{font-weight:700;font-size:16px;display:block;margin-top:2px}
+.income{color:#10b981}.expense{color:#f43f5e}
+.section-title{font-size:13px;font-weight:700;margin-bottom:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px}
+.bar-row{margin-bottom:10px}
+.bar-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+.bar-bg{background:#0f172a;border-radius:6px;height:6px}
+.bar-fill{border-radius:6px;height:6px;transition:width 0.4s ease}
+.tx-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.tx-icon{font-size:22px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:#0f172a;border-radius:10px}
+.tx-info{flex:1;min-width:0}
+.tx-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-meta{font-size:11px;color:#475569;margin-top:1px}
+.tx-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.tag-chip{padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;background:#1e2d42;color:#94a3b8}
+.tx-amount{font-weight:700;font-size:14px;white-space:nowrap}
+.warning-card{background:#111827;border-radius:16px;padding:14px;margin-bottom:12px;border:1px solid rgba(251,191,36,0.3)}
+.warning-title{font-size:13px;font-weight:700;color:#fbbf24;margin-bottom:8px}
+.warning-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(15,22,36,0.98);backdrop-filter:blur(10px);display:flex;border-top:1px solid #1e2d42;z-index:10}
+.nav-btn{flex:1;padding:10px 0 8px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color 0.2s}
+.nav-icon{font-size:20px}
+.nav-label{font-size:10px;font-weight:600}
+.fab{position:fixed;bottom:90px;right:calc(50% - 210px);border:none;border-radius:50%;width:56px;height:56px;font-size:28px;color:#fff;cursor:pointer;box-shadow:0 4px 24px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10;transition:transform 0.2s}
+.fab:active{transform:scale(0.92)}
+.filter-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.filter-btn{padding:5px 12px;border-radius:20px;border:none;cursor:pointer;font-size:12px;font-weight:700;color:#fff;transition:all 0.2s}
+.tx-card{background:#111827;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:8px;border:1px solid #1e2d42}
+.tx-actions{display:flex;gap:6px;flex-shrink:0}
+.icon-btn{background:#1a2540;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:14px;transition:background 0.2s}
+.icon-btn:hover{background:#243050}
+.rec-card{background:#111827;border-radius:14px;padding:14px;margin-bottom:8px;border:1px solid #1e2d42}
+.rec-header{display:flex;justify-content:space-between;align-items:flex-start}
+.rec-name{font-weight:700;font-size:15px}
+.rec-meta{font-size:12px;color:#64748b;margin-top:2px}
+.rec-urgent{font-size:12px;color:#fbbf24;margin-top:2px}
+.del-btn{background:none;border:none;color:#475569;cursor:pointer;font-size:12px;margin-top:6px;font-weight:600}
+.del-btn:hover{color:#f43f5e}
+.budget-card{background:#111827;border-radius:14px;padding:14px;margin-bottom:8px;border:1px solid #1e2d42}
+.budget-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.budget-meta{font-size:12px;color:#475569;margin-bottom:4px}
+.over-warning{color:#f43f5e;font-size:11px;margin-top:4px;font-weight:600}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+.modal{background:#111827;border-radius:24px 24px 0 0;padding:20px;width:100%;max-width:430px;max-height:90vh;overflow-y:auto;border-top:1px solid #1e2d42}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-title{font-weight:800;font-size:17px}
+.close-btn{background:#1a2540;border:none;border-radius:8px;color:#64748b;padding:4px 10px;cursor:pointer;font-size:18px}
+.type-row{display:flex;gap:8px;margin-bottom:16px}
+.type-btn{flex:1;padding:10px;border-radius:12px;border:none;cursor:pointer;font-weight:700;font-size:14px;color:#fff;transition:all 0.2s}
+
+/* Tags in modal */
+.modal-section-label{font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.tags-area{margin-bottom:14px}
+.tags-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.tag-select-btn{padding:6px 12px;border-radius:20px;border:2px solid transparent;cursor:pointer;font-size:12px;font-weight:600;background:#1a2540;color:#94a3b8;transition:all 0.15s}
+.tag-select-btn.active{background:#6366f133;border-color:#6366f1;color:#a5b4fc}
+.tag-input-row{display:flex;gap:8px}
+.tag-input-row input{margin-bottom:0;flex:1}
+.tag-add-btn{background:#1a2540;border:none;border-radius:10px;color:#94a3b8;padding:0 14px;cursor:pointer;font-size:13px;font-weight:700;flex-shrink:0}
+
+.cats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.cat-btn{padding:6px 12px;border-radius:20px;border:2px solid transparent;cursor:pointer;font-size:13px;color:#e2e8f0;transition:all 0.15s;background:#1a2540}
+.rec-types{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.rec-type-btn{padding:6px 14px;border-radius:20px;border:none;cursor:pointer;font-weight:600;font-size:13px;color:#fff;transition:all 0.2s}
+input,select{width:100%;background:#0a0f1e;border:1px solid #1e2d42;border-radius:12px;color:#e2e8f0;padding:12px 14px;font-size:15px;margin-bottom:10px;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s}
+input:focus{border-color:#6366f1}
+input::placeholder{color:#334155}
+.save-btn{width:100%;border:none;border-radius:14px;color:#fff;padding:14px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;transition:opacity 0.2s}
+.save-btn:active{opacity:0.8}
+.add-btn{width:100%;background:#6366f1;border:none;border-radius:14px;color:#fff;padding:14px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:14px;transition:opacity 0.2s}
+.budget-edit{display:flex;gap:6px}
+.budget-edit input{width:90px;margin-bottom:0;padding:4px 8px;font-size:13px}
+.budget-ok{background:#6366f1;border:none;border-radius:8px;color:#fff;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:700}
+.set-btn{background:#1a2540;border:none;border-radius:8px;color:#64748b;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:600}
+.empty{color:#334155;text-align:center;padding:32px 0;font-size:14px}
+.loading{display:flex;align-items:center;justify-content:center;height:100vh;color:#475569;font-size:16px}
+.settings-section{margin-bottom:20px}
+.settings-label{font-size:12px;color:#64748b;margin-bottom:8px;display:block;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+.user-settings-card{background:#111827;border-radius:14px;padding:16px;margin-bottom:10px;border:1px solid #1e2d42}
+
+/* Charts */
+.chart-wrap{display:flex;flex-direction:column;align-items:center;padding:4px 0 8px}
+.chart-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:10px;justify-content:center}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#94a3b8;font-weight:600}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.monthly-chart-wrap{padding:4px 0}
+.chart-row-labels{display:flex;justify-content:space-around;margin-top:4px}
+.chart-row-label{font-size:10px;color:#475569;text-align:center;width:40px}
+.chart-legend-row{display:flex;gap:12px;justify-content:center;margin-top:8px}
+
+.tag-filter-area{margin-bottom:10px}
+.search-input{margin-bottom:8px}
+
+/* Month nav */
+.month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;background:#111827;border-radius:14px;padding:8px 14px;border:1px solid #1e2d42}
+.month-nav-btn{background:#1a2540;border:none;border-radius:8px;color:#94a3b8;padding:4px 12px;cursor:pointer;font-size:16px;font-weight:700}
+.month-nav-label{font-size:13px;font-weight:700;color:#e2e8f0}
+/* Range selector */
+.range-row{display:flex;gap:5px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.range-row::-webkit-scrollbar{display:none}
+.range-btn{padding:5px 11px;border-radius:20px;border:none;cursor:pointer;font-size:12px;font-weight:700;color:#94a3b8;background:#111827;border:1px solid #1e2d42;white-space:nowrap;transition:all 0.2s;flex-shrink:0}
+.range-btn.active{background:#6366f133;border-color:#6366f1;color:#a5b4fc}
+/* Range summary breakdown */
+.range-breakdown{margin-top:10px}
+.month-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #1a2235;font-size:13px}
+.month-row:last-child{border-bottom:none}
+.month-row-label{font-weight:600;color:#94a3b8}
+.month-row-vals{display:flex;gap:12px}
+.month-row-bal{font-weight:700}
+</style>
+</head>
+<body>
+<div id="root"><div class="loading">💰 Načítám...</div></div>
+
+<script type="module">
+// ─── FIREBASE ──────────────────────────────────────────────────────
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC1s5Q7fitYSkIZquKX4Lhjf3-0qChxcfs",
+  authDomain: "coinsafe-d728d.firebaseapp.com",
+  projectId: "coinsafe-d728d",
+  storageBucket: "coinsafe-d728d.firebasestorage.app",
+  messagingSenderId: "223348282480",
+  appId: "1:223348282480:web:3098d21eef6f4e5f8950b5"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+// ─── LOCAL STORAGE (jen pro tagy) ──────────────────────────────────
+function saveLocal(key, data){ localStorage.setItem('ff_'+key, JSON.stringify(data)); }
+function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+// ─── CATEGORIES ────────────────────────────────────────────────────
+const EXPENSE_CATEGORIES=[
+  {id:"food",label:"Jídlo",icon:"🍔",color:"#f97316"},
+  {id:"housing",label:"Bydlení",icon:"🏠",color:"#3b82f6"},
+  {id:"transport",label:"Doprava",icon:"🚗",color:"#8b5cf6"},
+  {id:"entertainment",label:"Zábava",icon:"🎬",color:"#ec4899"},
+  {id:"health",label:"Zdraví",icon:"💊",color:"#10b981"},
+  {id:"other",label:"Ostatní",icon:"📦",color:"#6b7280"},
+];
+const INCOME_CATEGORIES=[
+  {id:"salary",label:"Výplata",icon:"💼",color:"#10b981"},
+  {id:"bonus",label:"Bonus",icon:"🎁",color:"#f59e0b"},
+  {id:"other_income",label:"Jiný příjem",icon:"💰",color:"#6b7280"},
+];
+const ALL_CATEGORIES=[...EXPENSE_CATEGORIES,...INCOME_CATEGORIES];
+const RECURRENCE=["Jednou","Týdně","Měsíčně","Ročně"];
+const USER_COLORS=["#6366f1","#ec4899","#f97316","#10b981","#3b82f6","#8b5cf6"];
+
+// ─── STATE ─────────────────────────────────────────────────────────
+let state = {
+  activeUser:"user1", tab:"home",
+  transactions: [],
+  recurring: [],
+  budgets: {},
+  settings: {
+    user1:{name:"Partner",color:"#6366f1"},
+    user2:{name:"Partnerka",color:"#ec4899"},
+  },
+  userTags: JSON.parse(localStorage.getItem('ff_tags')||'["Lidl","Kaufland","Albert","Benzín","Netflix","Spotify","Nájem","Elektřina","Restaurace","Lékárna","Oblečení","Dárky","Kino","Léky","Internet","Pojištění"]'),
+  modal:null, editingBudget:null, budgetVal:"",
+  filterUser:"all", filterTag:null, searchText:"",
+  editingName:null, nameVal:"",
+  viewMonth: new Date().toISOString().slice(0,7),
+  viewRange: 1,
+};
+
+// ─── HELPERS ───────────────────────────────────────────────────────
+function today(){ return new Date().toISOString().split("T")[0]; }
+function formatCZK(n){ return new Intl.NumberFormat("cs-CZ",{style:"currency",currency:"CZK",maximumFractionDigits:0}).format(n||0); }
+function daysUntil(d){ return Math.ceil((new Date(d)-new Date(today()))/86400000); }
+function getUser(id){ return {id,...(state.settings[id]||{name:id,color:"#6366f1"})}; }
+function getCat(id){ return ALL_CATEGORIES.find(c=>c.id===id)||ALL_CATEGORIES[5]; }
+function sortTx(arr){ return [...arr].sort((a,b)=>b.date.localeCompare(a.date)||(b.id>a.id?1:-1)); }
+function formatMonthLabel(ym){
+  const [y,m]=ym.split('-');
+  const d=new Date(y,m-1,1);
+  return d.toLocaleDateString('cs-CZ',{month:'long',year:'numeric'});
+}
+// Returns transactions for the current view (single month or multi-month range)
+function getRangeTx(){
+  const r=state.viewRange;
+  if(r===1) return state.transactions.filter(t=>t.date.startsWith(state.viewMonth));
+  if(r===0) return state.transactions;
+  const cutoff=new Date(); cutoff.setDate(1); cutoff.setMonth(cutoff.getMonth()-(r-1));
+  const key=cutoff.toISOString().slice(0,7);
+  return state.transactions.filter(t=>t.date>=key);
+}
+// Returns array of {key,label} for last N months (for breakdown)
+function getRangeMonths(n){
+  const months=[];
+  for(let i=n-1;i>=0;i--){
+    const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-i);
+    months.push({key:d.toISOString().slice(0,7),label:d.toLocaleDateString('cs-CZ',{month:'short',year:'2-digit'})});
+  }
+  return months;
+}
+
+function setState(patch){
+  state={...state,...patch};
+  render();
+}
+
+// ─── DB OPERATIONS (Firebase) ──────────────────────────────────────
+async function addTransaction(tx){
+  await addDoc(collection(db,"transactions"),{userId:state.activeUser,date:today(),tags:[],...tx});
+}
+async function updateTransaction(id,tx){
+  await updateDoc(doc(db,"transactions",id),tx);
+}
+async function deleteTransaction(id){
+  await deleteDoc(doc(db,"transactions",id));
+}
+async function addRecurring(r){
+  await addDoc(collection(db,"recurring"),{userId:state.activeUser,...r});
+}
+async function deleteRecurring(id){
+  await deleteDoc(doc(db,"recurring",id));
+}
+async function saveBudget(catId,amount){
+  await setDoc(doc(db,"settings","budgets"),{...state.budgets,[catId]:Number(amount)},{merge:true});
+}
+async function saveUserSettings(uid,patch){
+  await setDoc(doc(db,"settings","users"),{[uid]:{...state.settings[uid],...patch}},{merge:true});
+}
+function addUserTag(tag){
+  const t=tag.trim();
+  if(!t||state.userTags.includes(t)) return;
+  state.userTags=[...state.userTags,t];
+  saveLocal('tags',state.userTags);
+}
+
+// ─── RENDER ────────────────────────────────────────────────────────
+function render(){ document.getElementById("root").innerHTML=buildApp(); attachEvents(); }
+
+// ─── FIREBASE REALTIME LISTENERS ───────────────────────────────────
+onSnapshot(collection(db,"transactions"),snap=>{
+  state.transactions=sortTx(snap.docs.map(d=>({id:d.id,...d.data()})));
+  render();
+});
+onSnapshot(collection(db,"recurring"),snap=>{
+  state.recurring=snap.docs.map(d=>({id:d.id,...d.data()}));
+  render();
+});
+onSnapshot(doc(db,"settings","budgets"),snap=>{
+  if(snap.exists()){ state.budgets=snap.data(); render(); }
+});
+onSnapshot(doc(db,"settings","users"),snap=>{
+  if(snap.exists()){ state.settings={...state.settings,...snap.data()}; render(); }
+});
+
+function buildApp(){
+  const u1=getUser("user1"),u2=getUser("user2"),au=getUser(state.activeUser);
+  const rangeTx=getRangeTx();
+  const totalIncome=rangeTx.filter(t=>t.type==="income").reduce((s,t)=>s+t.amount,0);
+  const totalExpense=rangeTx.filter(t=>t.type==="expense").reduce((s,t)=>s+t.amount,0);
+  const balance=totalIncome-totalExpense;
+  const upcoming=state.recurring.filter(r=>{const d=daysUntil(r.nextDate);return d>=0&&d<=7;});
+
+  let content="";
+  if(state.tab==="home") content=buildHome(rangeTx,totalIncome,totalExpense,balance,upcoming);
+  if(state.tab==="transactions") content=buildTransactions();
+  if(state.tab==="recurring") content=buildRecurring();
+  if(state.tab==="budget") content=buildBudget(rangeTx);
+  if(state.tab==="settings") content=buildSettings(u1,u2);
+
+  const fab=(state.tab==="home"||state.tab==="transactions")?
+    `<button class="fab" id="fabBtn" style="background:${au.color}">+</button>`:"";
+
+  return `<div class="app">
+    <div class="header">
+      <h1>💰 Rodinné finance</h1>
+      <div class="user-btns">
+        <button class="user-btn" data-user="user1" style="background:${state.activeUser==="user1"?u1.color:"#1a2540"}">${u1.name}</button>
+        <button class="user-btn" data-user="user2" style="background:${state.activeUser==="user2"?u2.color:"#1a2540"}">${u2.name}</button>
+      </div>
+    </div>
+    <div class="content">${content}</div>
+    <div class="bottom-nav">
+      ${[["home","🏠","Přehled"],["transactions","📋","Transakce"],["recurring","🔄","Platby"],["budget","📊","Rozpočet"],["settings","⚙️","Nastavení"]].map(([id,icon,label])=>`
+        <button class="nav-btn" data-tab="${id}" style="color:${state.tab===id?"#6366f1":"#334155"}">
+          <span class="nav-icon">${icon}</span><span class="nav-label">${label}</span>
+        </button>`).join("")}
+    </div>
+    ${fab}
+    ${state.modal?buildModal():""}
+  </div>`;
+}
+
+// ─── HOME ──────────────────────────────────────────────────────────
+function buildHome(rangeTx,totalIncome,totalExpense,balance,upcoming){
+  const catTotals=EXPENSE_CATEGORIES.map(c=>({...c,total:rangeTx.filter(t=>t.type==="expense"&&t.category===c.id).reduce((s,t)=>s+t.amount,0)}));
+  const recentTx=rangeTx.slice(0,5);
+  const r=state.viewRange;
+
+  // Range options: [label, value]
+  const ranges=[[`${formatMonthLabel(state.viewMonth).split(' ')[0]}`,1],["2 m.",2],["3 m.",3],["6 m.",6],["1 rok",12],["Vše",0]];
+  const rangeBar=`<div class="range-row">
+    ${ranges.map(([lbl,v])=>`<button class="range-btn${r===v?" active":""}" data-range="${v}">${lbl}</button>`).join("")}
+  </div>`;
+
+  // Month nav only shown in single-month mode
+  const monthNav=r===1?`<div class="month-nav">
+    <button class="month-nav-btn" id="prevMonth">‹</button>
+    <span class="month-nav-label">${formatMonthLabel(state.viewMonth)}</span>
+    <button class="month-nav-btn" id="nextMonth">›</button>
+  </div>`:"";
+
+  // Range label for balance card
+  const rangeLabel=r===1?formatMonthLabel(state.viewMonth):r===0?"Celkem vše":`Posledních ${r} měsíců`;
+
+  // Per-month breakdown for multi-month ranges
+  let breakdownHTML="";
+  if(r>1||r===0){
+    const months=r===0?getAllMonths():getRangeMonths(r);
+    const rows=months.map(({key,label})=>{
+      const txs=state.transactions.filter(t=>t.date.startsWith(key));
+      const inc=txs.filter(t=>t.type==="income").reduce((s,t)=>s+t.amount,0);
+      const exp=txs.filter(t=>t.type==="expense").reduce((s,t)=>s+t.amount,0);
+      const bal=inc-exp;
+      if(!inc&&!exp) return "";
+      return `<div class="month-row">
+        <span class="month-row-label">${label}</span>
+        <div class="month-row-vals">
+          <span class="income" style="font-size:12px">${formatCZK(inc)}</span>
+          <span class="expense" style="font-size:12px">${formatCZK(exp)}</span>
+          <span class="month-row-bal" style="color:${bal>=0?"#10b981":"#f43f5e"}">${formatCZK(bal)}</span>
+        </div>
+      </div>`;
+    }).filter(Boolean).join("");
+    if(rows) breakdownHTML=`<div class="card">
+      <div class="section-title">Přehled po měsících</div>
+      <div style="display:flex;justify-content:flex-end;gap:12px;margin-bottom:6px">
+        <span style="font-size:10px;color:#10b981;font-weight:700">PŘÍJMY</span>
+        <span style="font-size:10px;color:#f43f5e;font-weight:700">VÝDAJE</span>
+        <span style="font-size:10px;color:#94a3b8;font-weight:700">ZŮSTATEK</span>
+      </div>
+      <div class="range-breakdown">${rows}</div>
+    </div>`;
+  }
+
+  return `
+    ${rangeBar}
+    ${monthNav}
+    <div class="balance-card">
+      <div class="balance-label">${rangeLabel}</div>
+      <div class="balance-amount" style="color:${balance>=0?"#10b981":"#f43f5e"}">${formatCZK(balance)}</div>
+      <div class="balance-row">
+        <div class="balance-sub"><label>Příjmy</label><span class="income">${formatCZK(totalIncome)}</span></div>
+        <div class="balance-sub"><label>Výdaje</label><span class="expense">${formatCZK(totalExpense)}</span></div>
+      </div>
+    </div>
+    ${upcoming.length?`
+    <div class="warning-card">
+      <div class="warning-title">⚠️ Blížící se platby</div>
+      ${upcoming.map(r=>`<div class="warning-row"><span>${r.name}</span><span style="color:#fbbf24">${daysUntil(r.nextDate)===0?"Dnes!":`za ${daysUntil(r.nextDate)} dní`} · ${formatCZK(r.amount)}</span></div>`).join("")}
+    </div>`:""}
+    ${breakdownHTML}
+    <div class="card">
+      <div class="section-title">Výdaje dle kategorie</div>
+      <div class="chart-wrap">
+        ${buildDonutChart(catTotals.map(c=>({value:c.total,color:c.color,label:c.icon+" "+c.label})))}
+        <div class="chart-legend">
+          ${catTotals.filter(c=>c.total>0).map(c=>`<div class="legend-item"><div class="legend-dot" style="background:${c.color}"></div>${c.icon} ${c.label}: ${formatCZK(c.total)}</div>`).join("")}
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Posledních 6 měsíců</div>
+      ${buildMonthlyChart()}
+    </div>
+    <div class="card">
+      <div class="section-title">Poslední transakce</div>
+      ${recentTx.map(t=>buildTxRow(t)).join("")}
+      ${recentTx.length===0?'<div class="empty">Zatím žádné transakce</div>':""}
+    </div>`;
+}
+
+function getAllMonths(){
+  const keys=[...new Set(state.transactions.map(t=>t.date.slice(0,7)))].sort();
+  return keys.map(key=>{
+    const [y,m]=key.split('-');
+    const d=new Date(y,m-1,1);
+    return {key,label:d.toLocaleDateString('cs-CZ',{month:'short',year:'2-digit'})};
+  });
+}
+
+// ─── CHARTS ────────────────────────────────────────────────────────
+function buildDonutChart(data){
+  const total=data.reduce((s,d)=>s+d.value,0);
+  if(!total) return '<div class="empty" style="padding:16px">Žádné výdaje</div>';
+  const size=160,cx=80,cy=80,r=60,ir=36;
+  let a=-Math.PI/2;
+  const arcs=data.filter(d=>d.value>0).map(d=>{
+    const angle=(d.value/total)*Math.PI*2;
+    const ea=a+angle;
+    const x1=cx+r*Math.cos(a),y1=cy+r*Math.sin(a);
+    const x2=cx+r*Math.cos(ea),y2=cy+r*Math.sin(ea);
+    const ix1=cx+ir*Math.cos(a),iy1=cy+ir*Math.sin(a);
+    const ix2=cx+ir*Math.cos(ea),iy2=cy+ir*Math.sin(ea);
+    const lg=angle>Math.PI?1:0;
+    const path=`M${x1},${y1} A${r},${r} 0 ${lg} 1 ${x2},${y2} L${ix2},${iy2} A${ir},${ir} 0 ${lg} 0 ${ix1},${iy1} Z`;
+    a=ea;
+    return `<path d="${path}" fill="${d.color}"/>`;
+  }).join('');
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    ${arcs}
+    <text x="${cx}" y="${cy-6}" text-anchor="middle" fill="#64748b" font-size="10" font-weight="700" font-family="Inter">VÝDAJE</text>
+    <text x="${cx}" y="${cy+12}" text-anchor="middle" fill="#f43f5e" font-size="14" font-weight="900" font-family="Inter">${formatCZK(total)}</text>
+  </svg>`;
+}
+
+function buildMonthlyChart(){
+  const months=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);
+    const key=d.toISOString().slice(0,7);
+    const label=d.toLocaleDateString('cs-CZ',{month:'short'});
+    const txs=state.transactions.filter(t=>t.date.startsWith(key));
+    months.push({key,label,income:txs.filter(t=>t.type==="income").reduce((s,t)=>s+t.amount,0),expense:txs.filter(t=>t.type==="expense").reduce((s,t)=>s+t.amount,0)});
+  }
+  const maxVal=Math.max(...months.flatMap(m=>[m.income,m.expense]),1);
+  const W=340,H=110,bw=18,gap=6,grp=bw*2+gap+14,top=8;
+  const bars=months.map((m,i)=>{
+    const x=i*grp+8;
+    const ih=Math.round((m.income/maxVal)*(H-top-20));
+    const eh=Math.round((m.expense/maxVal)*(H-top-20));
+    return `
+      <rect x="${x}" y="${H-20-ih}" width="${bw}" height="${ih||2}" fill="#10b981" rx="3" opacity="0.85"/>
+      <rect x="${x+bw+gap}" y="${H-20-eh}" width="${bw}" height="${eh||2}" fill="#f43f5e" rx="3" opacity="0.85"/>
+      <text x="${x+bw+gap/2}" y="${H-4}" text-anchor="middle" fill="#475569" font-size="9" font-family="Inter">${m.label}</text>`;
+  }).join('');
+  return `<div class="monthly-chart-wrap">
+    <svg width="100%" viewBox="0 0 ${W} ${H}" style="max-width:${W}px;display:block;margin:0 auto">
+      ${bars}
+    </svg>
+    <div class="chart-legend-row">
+      <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Příjmy</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f43f5e"></div>Výdaje</div>
+    </div>
+  </div>`;
+}
+
+// ─── TX ROW ────────────────────────────────────────────────────────
+function buildTxRow(t){
+  const cat=getCat(t.category),user=getUser(t.userId);
+  const tags=(t.tags||[]).map(tag=>`<span class="tag-chip">${tag}</span>`).join('');
+  return `<div class="tx-row">
+    <div class="tx-icon">${cat.icon}</div>
+    <div class="tx-info">
+      <div class="tx-name">${t.description||cat.label}</div>
+      <div class="tx-meta">${t.date} · <span style="color:${user.color}">${user.name}</span></div>
+      ${tags?`<div class="tx-tags">${tags}</div>`:""}
+    </div>
+    <span class="tx-amount" style="color:${t.type==="income"?"#10b981":"#f43f5e"}">${t.type==="income"?"+":"-"}${formatCZK(t.amount)}</span>
+  </div>`;
+}
+
+// ─── TRANSACTIONS ──────────────────────────────────────────────────
+function buildTransactions(){
+  const u1=getUser("user1"),u2=getUser("user2");
+  let filtered=state.filterUser==="all"?state.transactions:state.transactions.filter(t=>t.userId===state.filterUser);
+  if(state.filterTag) filtered=filtered.filter(t=>(t.tags||[]).includes(state.filterTag));
+  if(state.searchText) {
+    const s=state.searchText.toLowerCase();
+    filtered=filtered.filter(t=>(t.description||"").toLowerCase().includes(s)||(t.tags||[]).some(g=>g.toLowerCase().includes(s)));
+  }
+
+  // All tags used in transactions (for filter chips)
+  const usedTags=[...new Set(state.transactions.flatMap(t=>t.tags||[]))].slice(0,20);
+
+  return `
+    <div class="filter-row">
+      <button class="filter-btn" data-filter="all" style="background:${state.filterUser==="all"?"#6366f1":"#1a2540"}">Vše</button>
+      <button class="filter-btn" data-filter="user1" style="background:${state.filterUser==="user1"?u1.color:"#1a2540"}">${u1.name}</button>
+      <button class="filter-btn" data-filter="user2" style="background:${state.filterUser==="user2"?u2.color:"#1a2540"}">${u2.name}</button>
+    </div>
+    <input class="search-input" id="searchInput" placeholder="🔍 Hledat dle popisu nebo tagu…" value="${state.searchText||""}"/>
+    ${usedTags.length?`<div class="tag-filter-area">
+      <div class="tags-list">
+        ${usedTags.map(tag=>`<button class="tag-select-btn${state.filterTag===tag?" active":""}" data-filtertag="${tag}">${tag}</button>`).join("")}
+        ${state.filterTag?`<button class="tag-select-btn active" data-filtertag="">✕ Zrušit filtr</button>`:""}
+      </div>
+    </div>`:""}
+    ${filtered.map(t=>`
+      <div class="tx-card">
+        <div style="flex:1;min-width:0">${buildTxRow(t)}</div>
+        <div class="tx-actions">
+          <button class="icon-btn" data-edit="${t.id}" style="color:#94a3b8">✏️</button>
+          <button class="icon-btn" data-del="${t.id}" style="color:#f43f5e">🗑️</button>
+        </div>
+      </div>`).join("")}
+    ${filtered.length===0?'<div class="empty">Žádné transakce</div>':""}`;
+}
+
+// ─── RECURRING ─────────────────────────────────────────────────────
+function buildRecurring(){
+  return `
+    <button class="add-btn" id="addRecBtn">+ Přidat pravidelnou platbu</button>
+    ${state.recurring.map(r=>{
+      const d=daysUntil(r.nextDate),urgent=d<=3&&d>=0;
+      return `<div class="rec-card" style="${urgent?"border-color:rgba(251,191,36,0.4)":""}">
+        <div class="rec-header">
+          <div>
+            <div class="rec-name">${r.name}</div>
+            <div class="rec-meta">${r.recurrence} · Další: ${r.nextDate}</div>
+            ${urgent?`<div class="rec-urgent">⚠️ ${d===0?"Dnes!":`Za ${d} dní`}</div>`:""}
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:700;color:${r.type==="income"?"#10b981":"#f43f5e"}">${formatCZK(r.amount)}</div>
+            <button class="del-btn" data-delrec="${r.id}">Smazat</button>
+          </div>
+        </div>
+      </div>`;
+    }).join("")}
+    ${state.recurring.length===0?'<div class="empty">Žádné pravidelné platby</div>':""}`;
+}
+
+// ─── BUDGET ────────────────────────────────────────────────────────
+function buildBudget(monthTx){
+  const catTotals=EXPENSE_CATEGORIES.map(c=>({...c,total:monthTx.filter(t=>t.type==="expense"&&t.category===c.id).reduce((s,t)=>s+t.amount,0)}));
+  return `
+    <div style="font-size:13px;color:#475569;margin-bottom:14px">Nastav měsíční limity pro jednotlivé kategorie</div>
+    ${catTotals.map(c=>{
+      const limit=state.budgets[c.id]||0,pct=limit?Math.min((c.total/limit)*100,100):0,over=limit&&c.total>limit;
+      return `<div class="budget-card">
+        <div class="budget-header">
+          <span style="font-weight:700">${c.icon} ${c.label}</span>
+          ${state.editingBudget===c.id?`
+            <div class="budget-edit">
+              <input id="budgetInput_${c.id}" value="${state.budgetVal}" placeholder="Kč" type="number"/>
+              <button class="budget-ok" data-savebudget="${c.id}">OK</button>
+            </div>`:
+            `<button class="set-btn" data-editbudget="${c.id}" data-budgetval="${limit}">${limit?formatCZK(limit):"Nastavit"} ✏️</button>`}
+        </div>
+        <div class="budget-meta">Utraceno: ${formatCZK(c.total)}${limit?` / ${formatCZK(limit)}`:""}</div>
+        ${limit>0?`<div class="bar-bg" style="margin-top:4px"><div class="bar-fill" style="background:${over?"#f43f5e":c.color};width:${pct}%"></div></div>`:""}
+        ${over?`<div class="over-warning">⚠️ Překročen o ${formatCZK(c.total-limit)}</div>`:""}
+      </div>`;
+    }).join("")}`;
+}
+
+// ─── SETTINGS ──────────────────────────────────────────────────────
+function buildSettings(u1,u2){
+  return `
+    <div class="settings-section">
+      <span class="settings-label">👤 Uživatelé</span>
+      ${["user1","user2"].map(uid=>{
+        const u=uid==="user1"?u1:u2,editN=state.editingName===uid;
+        return `<div class="user-settings-card">
+          ${editN?`
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="nameInput_${uid}" value="${u.name}" style="margin-bottom:0;flex:1;padding:8px 12px;font-size:14px" placeholder="Jméno"/>
+              <button class="budget-ok" data-savename="${uid}">Uložit</button>
+            </div>`:
+            `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${u.color}"></span>
+                <span style="font-weight:700;font-size:16px">${u.name}</span>
+              </div>
+              <button class="set-btn" data-editname="${uid}" data-nameval="${u.name}">✏️ Přejmenovat</button>
+            </div>`}
+          <div style="font-size:12px;color:#475569;margin-bottom:8px;margin-top:${editN?8:0}px">Barva</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${USER_COLORS.map(col=>`<button data-setcolor="${uid}" data-color="${col}" style="width:30px;height:30px;border-radius:50%;background:${col};border:3px solid ${u.color===col?"#fff":"transparent"};cursor:pointer"></button>`).join("")}
+          </div>
+        </div>`;
+      }).join("")}
+    </div>
+    <div class="settings-section">
+      <span class="settings-label">🏷️ Tagy (globální seznam)</span>
+      <div class="card" style="padding:12px">
+        <div class="tags-list" style="margin-bottom:8px">
+          ${state.userTags.map(tag=>`<span class="tag-chip" style="font-size:12px;padding:4px 10px">${tag} <button style="background:none;border:none;color:#475569;cursor:pointer;margin-left:2px" data-deltag="${tag}">✕</button></span>`).join("")}
+        </div>
+        <div class="tag-input-row">
+          <input id="newTagInput" placeholder="Nový tag…" style="margin-bottom:0"/>
+          <button class="tag-add-btn" id="addTagBtn">Přidat</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ─── MODAL ─────────────────────────────────────────────────────────
+function buildModal(){
+  const m=state.modal;
+  if(m.type==="transaction"||m.type==="edit"){
+    const t=m.payload||{};
+    const type=m._type||t.type||"expense";
+    const au=getUser(state.activeUser);
+    const cats=type==="income"?INCOME_CATEGORIES:EXPENSE_CATEGORIES;
+    const defaultCat=type==="income"?"salary":"food";
+    const selCat=m._cat||(t.category&&cats.find(c=>c.id===t.category)?t.category:defaultCat);
+    const selTags=m._tags||t.tags||[];
+    const amount=m._amount!==undefined?m._amount:(t.amount||"");
+
+    return `<div class="modal-overlay" id="modalOverlay">
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title">${m.type==="edit"?"Upravit transakci":"Přidat transakci"}</span>
+          <button class="close-btn" id="closeModal">✕</button>
+        </div>
+
+        <div class="type-row">
+          <button class="type-btn" data-txtype="expense" style="background:${type==="expense"?"#f43f5e":"#1a2540"}">Výdaj</button>
+          <button class="type-btn" data-txtype="income" style="background:${type==="income"?"#10b981":"#1a2540"}">Příjem</button>
+        </div>
+
+        <div class="modal-section-label">Kategorie</div>
+        <div class="cats">
+          ${cats.map(c=>`<button class="cat-btn" data-cat="${c.id}" style="background:${selCat===c.id?c.color+"33":"#1a2540"};border-color:${selCat===c.id?c.color:"transparent"}">${c.icon} ${c.label}</button>`).join("")}
+        </div>
+
+        <div class="modal-section-label">Tagy</div>
+        <div class="tags-area">
+          <div class="tags-list">
+            ${state.userTags.map(tag=>{
+              const active=selTags.includes(tag);
+              return `<button class="tag-select-btn${active?" active":""}" data-modaltag="${tag}">${tag}</button>`;
+            }).join("")}
+          </div>
+          <div class="tag-input-row">
+            <input id="newModalTag" placeholder="Vlastní tag…" style="margin-bottom:0"/>
+            <button class="tag-add-btn" id="addModalTagBtn">+</button>
+          </div>
+        </div>
+
+        <div class="modal-section-label">Částka</div>
+        <input id="txAmount" placeholder="Částka (Kč)" type="number" value="${amount}" autofocus/>
+        <input id="txDesc" placeholder="Popis (volitelné)" value="${t.description||""}"/>
+        <input id="txDate" type="date" value="${t.date||today()}"/>
+        <button class="save-btn" id="saveTxBtn" style="background:${au.color}">${m.type==="edit"?"Uložit změny":"Přidat"}</button>
+      </div>
+    </div>`;
+  }
+  if(m.type==="recurring"){
+    const rec=m._rec||"Měsíčně",rtype=m._rtype||"expense";
+    const cats=rtype==="income"?INCOME_CATEGORIES:EXPENSE_CATEGORIES;
+    const selCat=m._rcat||(rtype==="income"?"salary":"food");
+    return `<div class="modal-overlay" id="modalOverlay">
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title">Pravidelná platba</span>
+          <button class="close-btn" id="closeModal">✕</button>
+        </div>
+        <div class="type-row">
+          <button class="type-btn" data-rtype="expense" style="background:${rtype==="expense"?"#f43f5e":"#1a2540"}">Výdaj</button>
+          <button class="type-btn" data-rtype="income" style="background:${rtype==="income"?"#10b981":"#1a2540"}">Příjem</button>
+        </div>
+        <input id="recName" placeholder="Název (např. Nájem)" value="${m._name||""}"/>
+        <input id="recAmount" placeholder="Částka (Kč)" type="number" value="${m._amount||""}"/>
+        <div class="cats" style="margin-bottom:14px">
+          ${cats.map(c=>`<button class="cat-btn" data-rcat="${c.id}" style="background:${selCat===c.id?c.color+"33":"#1a2540"};border-color:${selCat===c.id?c.color:"transparent"}">${c.icon} ${c.label}</button>`).join("")}
+        </div>
+        <div class="rec-types">
+          ${RECURRENCE.map(r=>`<button class="rec-type-btn" data-rectype="${r}" style="background:${rec===r?"#6366f1":"#1a2540"}">${r}</button>`).join("")}
+        </div>
+        <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px">Datum příští platby</label>
+        <input id="recDate" type="date" value="${m._date||today()}"/>
+        <button class="save-btn" id="saveRecBtn" style="background:#6366f1">Přidat platbu</button>
+      </div>
+    </div>`;
+  }
+  return "";
+}
+
+// ─── EVENTS ────────────────────────────────────────────────────────
+function attachEvents(){
+  document.querySelectorAll("[data-range]").forEach(b=>b.addEventListener("click",()=>{
+    const v=parseInt(b.dataset.range);
+    setState({viewRange:v});
+  }));
+  document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>setState({tab:b.dataset.tab})));
+
+  const fab=document.getElementById("fabBtn");
+  if(fab) fab.addEventListener("click",()=>setState({modal:{type:"transaction"}}));
+
+  document.querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>setState({filterUser:b.dataset.filter})));
+  document.querySelectorAll("[data-filtertag]").forEach(b=>b.addEventListener("click",()=>setState({filterTag:b.dataset.filtertag||null})));
+
+  const searchInput=document.getElementById("searchInput");
+  if(searchInput) searchInput.addEventListener("input",e=>{ state.searchText=e.target.value; render(); });
+
+  document.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",()=>{ if(confirm("Smazat transakci?")) deleteTransaction(b.dataset.del); }));
+  document.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>{
+    const t=state.transactions.find(x=>x.id===b.dataset.edit);
+    setState({modal:{type:"edit",payload:t,_type:t.type,_cat:t.category,_tags:t.tags||[]}});
+  }));
+
+  const addRec=document.getElementById("addRecBtn");
+  if(addRec) addRec.addEventListener("click",()=>setState({modal:{type:"recurring"}}));
+  document.querySelectorAll("[data-delrec]").forEach(b=>b.addEventListener("click",()=>{ if(confirm("Smazat?")) deleteRecurring(b.dataset.delrec); }));
+
+  document.querySelectorAll("[data-editbudget]").forEach(b=>b.addEventListener("click",()=>setState({editingBudget:b.dataset.editbudget,budgetVal:b.dataset.budgetval})));
+  document.querySelectorAll("[data-savebudget]").forEach(b=>b.addEventListener("click",()=>{
+    const inp=document.getElementById("budgetInput_"+b.dataset.savebudget);
+    saveBudget(b.dataset.savebudget,inp?.value||0);
+    setState({editingBudget:null});
+  }));
+
+  document.querySelectorAll("[data-editname]").forEach(b=>b.addEventListener("click",()=>setState({editingName:b.dataset.editname,nameVal:b.dataset.nameval})));
+  document.querySelectorAll("[data-savename]").forEach(b=>b.addEventListener("click",()=>{
+    const inp=document.getElementById("nameInput_"+b.dataset.savename);
+    if(inp?.value?.trim()) saveUserSettings(b.dataset.savename,{name:inp.value.trim()});
+    setState({editingName:null});
+  }));
+  document.querySelectorAll("[data-setcolor]").forEach(b=>b.addEventListener("click",()=>saveUserSettings(b.dataset.setcolor,{color:b.dataset.color})));
+
+  // Tag management (settings)
+  document.querySelectorAll("[data-deltag]").forEach(b=>b.addEventListener("click",e=>{
+    e.stopPropagation();
+    state.userTags=state.userTags.filter(t=>t!==b.dataset.deltag);
+    saveLocal('tags',state.userTags);
+    render();
+  }));
+  const addTagBtn=document.getElementById("addTagBtn");
+  if(addTagBtn) addTagBtn.addEventListener("click",()=>{
+    const inp=document.getElementById("newTagInput");
+    if(inp?.value?.trim()){ addUserTag(inp.value); render(); }
+  });
+
+  // Month navigation
+  const prevM=document.getElementById("prevMonth");
+  const nextM=document.getElementById("nextMonth");
+  if(prevM) prevM.addEventListener("click",()=>{
+    const [y,m]=state.viewMonth.split('-').map(Number);
+    const d=new Date(Date.UTC(y,m-2,1));
+    setState({viewMonth:d.toISOString().slice(0,7)});
+  });
+  if(nextM) nextM.addEventListener("click",()=>{
+    const [y,m]=state.viewMonth.split('-').map(Number);
+    const d=new Date(Date.UTC(y,m,1));
+    setState({viewMonth:d.toISOString().slice(0,7)});
+  });
+
+  // Modal close
+  const closeBtn=document.getElementById("closeModal");
+  if(closeBtn) closeBtn.addEventListener("click",()=>setState({modal:null}));
+  const overlay=document.getElementById("modalOverlay");
+  if(overlay) overlay.addEventListener("click",(e)=>{ if(e.target===overlay) setState({modal:null}); });
+
+  // TX type toggle
+  document.querySelectorAll("[data-txtype]").forEach(b=>b.addEventListener("click",()=>{
+    const newType=b.dataset.txtype;
+    setState({modal:{...state.modal,_type:newType,_cat:newType==="income"?"salary":"food",_tags:[]}});
+  }));
+
+  // Category selection — also clear amount
+  document.querySelectorAll("[data-cat]").forEach(b=>b.addEventListener("click",()=>{
+    setState({modal:{...state.modal,_cat:b.dataset.cat,_amount:""}});
+  }));
+
+  // Modal tag toggle — clear amount when tag selected
+  document.querySelectorAll("[data-modaltag]").forEach(b=>b.addEventListener("click",()=>{
+    const tag=b.dataset.modaltag;
+    const current=state.modal._tags||[];
+    const newTags=current.includes(tag)?current.filter(t=>t!==tag):[...current,tag];
+    setState({modal:{...state.modal,_tags:newTags,_amount:""}});
+    // Focus amount input after re-render
+    setTimeout(()=>document.getElementById("txAmount")?.focus(),50);
+  }));
+
+  // Add new tag in modal
+  const addModalTag=document.getElementById("addModalTagBtn");
+  if(addModalTag) addModalTag.addEventListener("click",()=>{
+    const inp=document.getElementById("newModalTag");
+    const tag=inp?.value?.trim();
+    if(!tag) return;
+    addUserTag(tag);
+    const current=state.modal._tags||[];
+    setState({modal:{...state.modal,_tags:[...current,tag],_amount:""}});
+    setTimeout(()=>document.getElementById("txAmount")?.focus(),50);
+  });
+
+  // Recurring type
+  document.querySelectorAll("[data-rtype]").forEach(b=>b.addEventListener("click",()=>{
+    const newType=b.dataset.rtype;
+    setState({modal:{...state.modal,_rtype:newType,_rcat:newType==="income"?"salary":"food"}});
+  }));
+  document.querySelectorAll("[data-rcat]").forEach(b=>b.addEventListener("click",()=>setState({modal:{...state.modal,_rcat:b.dataset.rcat}})));
+  document.querySelectorAll("[data-rectype]").forEach(b=>b.addEventListener("click",()=>setState({modal:{...state.modal,_rec:b.dataset.rectype}})));
+
+  // Save transaction
+  const saveTx=document.getElementById("saveTxBtn");
+  if(saveTx) saveTx.addEventListener("click",()=>{
+    const amount=parseFloat(document.getElementById("txAmount")?.value);
+    const desc=document.getElementById("txDesc")?.value||"";
+    const date=document.getElementById("txDate")?.value||today();
+    const type=state.modal._type||state.modal.payload?.type||"expense";
+    const category=state.modal._cat||(type==="income"?"salary":"food");
+    const tags=state.modal._tags||[];
+    if(!amount||isNaN(amount)) return;
+    if(state.modal.type==="edit") updateTransaction(state.modal.payload.id,{amount,description:desc,date,type,category,tags});
+    else addTransaction({amount,description:desc,date,type,category,tags});
+    setState({modal:null});
+  });
+
+  // Save recurring
+  const saveRec=document.getElementById("saveRecBtn");
+  if(saveRec) saveRec.addEventListener("click",()=>{
+    const name=document.getElementById("recName")?.value;
+    const amount=parseFloat(document.getElementById("recAmount")?.value);
+    const nextDate=document.getElementById("recDate")?.value||today();
+    const recurrence=state.modal._rec||"Měsíčně";
+    const type=state.modal._rtype||"expense";
+    const category=state.modal._rcat||(type==="income"?"salary":"food");
+    if(!name||!amount) return;
+    addRecurring({name,amount,recurrence,nextDate,type,category});
+    setState({modal:null});
+  });
+}
+
+render();
+</script>
+</body>
+</html>
